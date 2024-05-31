@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
+	"github.com/ocxide/whatstlunch/cmd/cli"
 )
 
 func listen(host string) {
@@ -44,7 +45,7 @@ func main() {
 		Use:   "load",
 		Short: "Load command",
 		Run: func(cmd *cobra.Command, args []string) {
-			Load(args[0])
+			cli.Load(args[0])
 		},
 	}
 
