@@ -24,3 +24,6 @@ pnpm-debug.log*
 .idea/
 
 public/
+
+# Default database
+meals.db

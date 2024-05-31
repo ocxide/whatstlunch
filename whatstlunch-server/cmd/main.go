@@ -44,10 +44,7 @@ func main() {
 		Use:   "load",
 		Short: "Load command",
 		Run: func(cmd *cobra.Command, args []string) {
-			data, _ := GetMeals(args[0])
-			for _, meal := range data {
-				fmt.Println(meal.Title)
-			}
+			Load(args[0])
 		},
 	}
 

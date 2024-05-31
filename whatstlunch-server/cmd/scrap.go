@@ -14,21 +14,24 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Meal struct {
-	Title       string
-	Intro       string
-	Comensales  uint
-	Duration    string
-	FoodType    string
-	Preparation []Preparation
+type ScrappedMeal struct {
+	Title        string
+	Introduction string
+	Comensales   uint
+	Duration     string
+	FoodType     string
+	Ingredients  []string
+	Preparation  []PreparationStep
 }
 
-type Preparation struct {
-	Order       string
+type PreparationStep struct {
+	Order       uint64
 	Description string
 }
 
-func getById(recipeLink string) (*Meal, error) {
+func getById(recipeLink string) (*ScrappedMeal, error) {
+	fmt.Printf("Getting meal %s\n", recipeLink)
+
 	rawResponse, err := http.Get(recipeLink)
 	if err != nil {
 		fmt.Printf("Error making recipe request to url %s: %v", recipeLink, err)
@@ -72,29 +75,37 @@ func getById(recipeLink string) (*Meal, error) {
 		ingredients = append(ingredients, s.Text())
 	})
 
-	preparations := make([]Preparation, 0)
+	preparations := make([]PreparationStep, 0)
 	htmlDoc.Find("div.apartado").Each(func(_ int, apartado *goquery.Selection) {
-		orden := apartado.Find("div.orden").Text()
+		orderStr := apartado.Find("div.orden").Text()
+		order, err := strconv.ParseUint(orderStr, 10, 64)
+
+		// If cannot parse, it is not a step "apartado"
+		if err != nil {
+			return
+		}
+
 		descripcion := apartado.Find("p").Text()
 
-		preparations = append(preparations, Preparation{
-			Order:       orden,
+		preparations = append(preparations, PreparationStep{
+			Order:       order,
 			Description: descripcion,
 		})
 	})
 
-	return &Meal{
-		Title:       title,
-		Intro:       intro,
-		Comensales:  uint(comensalesCount),
-		Duration:    duration,
-		FoodType:    foodType,
-		Preparation: preparations,
+	return &ScrappedMeal{
+		Title:        title,
+		Introduction: intro,
+		Comensales:   uint(comensalesCount),
+		Duration:     duration,
+		FoodType:     foodType,
+		Ingredients:  ingredients,
+		Preparation:  preparations,
 	}, nil
 }
 
-func GetMeals(url string) ([]Meal, error) {
-	meals := make([]Meal, 0)
+func GetMeals(url string) ([]ScrappedMeal, error) {
+	meals := make([]ScrappedMeal, 0)
 
 	rawResponse, err := http.Get(url)
 	if err != nil {
