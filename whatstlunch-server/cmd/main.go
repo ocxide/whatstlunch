@@ -38,8 +38,21 @@ func main() {
 	}
 
 	launchCmd.PersistentFlags().String("host", "", "Host to serve on")
-
 	rootCmd.AddCommand(launchCmd)
+
+	loadCmd := &cobra.Command{
+		Use:   "load",
+		Short: "Load command",
+		Run: func(cmd *cobra.Command, args []string) {
+			data, _ := GetMeals(args[0])
+			for _, meal := range data {
+				fmt.Println(meal.Title)
+			}
+		},
+	}
+
+	loadCmd.Args = cobra.MinimumNArgs(1)
+	rootCmd.AddCommand(loadCmd)
 
 	rootCmd.Execute()
 }
