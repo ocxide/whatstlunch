@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/spf13/cobra"
 	"github.com/ocxide/whatstlunch/cmd/cli"
+	"github.com/ocxide/whatstlunch/cmd/endpoints/dishes"
+	"github.com/spf13/cobra"
 )
 
 func listen(host string) {
 	http.Handle("/", http.FileServer(http.Dir("public")))
-	// http.HandleFunc("/image", handleImage)
+	http.HandleFunc("/dishes", dishes.Search)
 
 	fmt.Printf("Listening on: %s\n", host)
 	err := http.ListenAndServe(host, nil)
