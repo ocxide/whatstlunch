@@ -62,7 +62,7 @@ func Search(res http.ResponseWriter, req *http.Request) {
 			m.duration,
 			m.food_type,
 			GROUP_CONCAT(i.description) as ingredients,
-			GROUP_CONCAT(p.description) as preparation
+			GROUP_CONCAT(p.description, ';') as preparation
 		FROM meals m
 		LEFT JOIN ingredients i ON m.id = i.meal_id
 		LEFT JOIN preparations p ON m.id = p.meal_id
@@ -89,7 +89,7 @@ func Search(res http.ResponseWriter, req *http.Request) {
 			Duration:     dish.Duration,
 			FoodType:     dish.FoodType,
 			Ingredients:  strings.Split(dish.Ingredients, ","),
-			Preparation:  strings.Split(dish.Preparation, ","),
+			Preparation:  strings.Split(dish.Preparation, ";"),
 		}
 	}
 
