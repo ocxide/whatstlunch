@@ -41,15 +41,15 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	args := make([]any, len(ingredients))
-	filter := "ingredients LIKE "
+	args := make([]any, 0, len(ingredients))
+	filter := "HAVING ingredients LIKE "
 
 	for i, ingredient := range ingredients {
 		filter = filter + "?"
 		args = append(args, "%"+ingredient+"%")
 
 		if i < len(ingredients)-1 {
-			filter += "AND ingredients LIKE "
+			filter += "OR ingredients LIKE "
 		}
 	}
 
@@ -66,10 +66,10 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		FROM meals m
 		LEFT JOIN ingredients i ON m.id = i.meal_id
 		LEFT JOIN preparations p ON m.id = p.meal_id
-		GROUP BY m.id`,
-
-		ingredients[0],
+		GROUP BY m.id `+filter,
+		args...,
 	)
+
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
@@ -77,6 +77,17 @@ func Search(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if len(dishes) == 0 {
+		fmt.Println("No dishes found", `SELECT
+			m.title,
+			m.introduction,
+			m.duration,
+			m.food_type,
+			GROUP_CONCAT(i.description) as ingredients,
+			GROUP_CONCAT(p.description, ';') as preparation
+		FROM meals m
+		LEFT JOIN ingredients i ON m.id = i.meal_id
+		LEFT JOIN preparations p ON m.id = p.meal_id
+		GROUP BY m.id `+filter, args)
 		res.WriteHeader(http.StatusNotFound)
 		return
 	}
