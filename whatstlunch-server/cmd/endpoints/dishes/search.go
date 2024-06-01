@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/ocxide/whatstlunch/cmd/database"
@@ -27,10 +29,46 @@ type DishFound struct {
 	Preparation  []string `json:"preparation"`
 }
 
+func parseRequirement(requireStr string) (float64, bool, error) {
+	if requireStr == "" {
+		return 0.0, false, nil
+	}
+
+	require := 0.0
+
+	requireI, err := strconv.Atoi(requireStr)
+	isCount := err == nil
+
+	if isCount {
+		require = float64(requireI)
+		return require, true, nil
+	} 
+
+	require, err = strconv.ParseFloat(requireStr, 64)
+
+	if err != nil {
+		return 0.0, false, err
+	}
+
+	if require > 1.0 {
+		return float64(int(require)), true, nil
+	}
+
+	return require, false, nil
+}
+
 func Search(res http.ResponseWriter, req *http.Request) {
 	ingredients, has := req.URL.Query()["ingredient"]
 
 	if !has {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	requireStr := req.URL.Query().Get("require")
+	require, isCount, err := parseRequirement(requireStr)
+
+	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -53,6 +91,12 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	limit := ""
+	if isCount {
+		limit = "LIMIT ?"
+		args = append(args, require)
+	}
+
 	dishes := []DishSelect{}
 	err = db.Select(
 		&dishes,
@@ -66,7 +110,7 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		FROM meals m
 		LEFT JOIN ingredients i ON m.id = i.meal_id
 		LEFT JOIN preparations p ON m.id = p.meal_id
-		GROUP BY m.id `+filter,
+		GROUP BY m.id `+filter+limit,
 		args...,
 	)
 
@@ -77,17 +121,6 @@ func Search(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if len(dishes) == 0 {
-		fmt.Println("No dishes found", `SELECT
-			m.title,
-			m.introduction,
-			m.duration,
-			m.food_type,
-			GROUP_CONCAT(i.description) as ingredients,
-			GROUP_CONCAT(p.description, ';') as preparation
-		FROM meals m
-		LEFT JOIN ingredients i ON m.id = i.meal_id
-		LEFT JOIN preparations p ON m.id = p.meal_id
-		GROUP BY m.id `+filter, args)
 		res.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -103,9 +136,40 @@ func Search(res http.ResponseWriter, req *http.Request) {
 			Preparation:  strings.Split(dish.Preparation, ";"),
 		}
 	}
+	
+	if !isCount {
+		// The users requires a percentage of the ingredients to match
+		mustMatch := int(float64(len(ingredients)) * require)
+		matched := make([]DishFound, 0)
+
+		for _, dish := range parsedDishes {
+			if matches(dish.Ingredients, ingredients, mustMatch) {
+				matched = append(matched, dish)
+			}
+		}
+
+		parsedDishes = matched
+	}
+
 
 	res.WriteHeader(http.StatusOK)
 	res.Header().Add("Content-Type", "application/json")
 
 	json.NewEncoder(res).Encode(parsedDishes)
+}
+
+func matches(ingredients []string, searchIngredients []string, mustMatch int) bool {
+	matched := 0
+
+	for _, searchIngredient := range searchIngredients {
+		if slices.Contains(ingredients, searchIngredient) {
+			matched++
+		}
+
+		if matched >= mustMatch {
+			return true
+		}
+	}
+
+	return matched >= mustMatch
 }
