@@ -10,11 +10,18 @@ import (
 )
 
 func listen(host string) {
-	http.Handle("/", http.FileServer(http.Dir("public")))
-	http.HandleFunc("/dishes", dishes.Search)
+	handler := http.NewServeMux()
+	handler.Handle("GET /", http.FileServer(http.Dir("public")))
+	handler.HandleFunc("GET /dishes", dishes.Search)
 
 	fmt.Printf("Listening on: %s\n", host)
-	err := http.ListenAndServe(host, nil)
+
+	server := http.Server{
+		Addr:    host,
+		Handler: handler,
+	}
+
+	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)
 	}
