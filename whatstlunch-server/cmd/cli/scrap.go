@@ -72,7 +72,7 @@ func getById(recipeLink string) (*ScrappedMeal, error) {
 
 	ingredients := make([]string, 0)
 	htmlDoc.Find("li.ingrediente label").Each(func(_ int, s *goquery.Selection) {
-		ingredients = append(ingredients, s.Text())
+		ingredients = append(ingredients, strings.TrimSpace(s.Text()))
 	})
 
 	preparations := make([]PreparationStep, 0)
@@ -89,7 +89,7 @@ func getById(recipeLink string) (*ScrappedMeal, error) {
 
 		preparations = append(preparations, PreparationStep{
 			Order:       order,
-			Description: descripcion,
+			Description: strings.TrimSpace(descripcion),
 		})
 	})
 
