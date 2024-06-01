@@ -5,40 +5,13 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/ocxide/whatstlunch/cmd/database"
 )
 
-var schema = `
-PRAGMA foreign_keys;
-
-CREATE TABLE IF NOT EXISTS "preparations" (
-	"id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-	"order"	INTEGER NOT NULL,
-	"description"	TEXT NOT NULL,
-	"meal_id"	INTEGER NOT NULL,
-	FOREIGN KEY(meal_id) REFERENCES meals(id)
-);
-
-CREATE TABLE IF NOT EXISTS "ingredients" (
-	"id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,	
-	"description"	TEXT NOT NULL,
-	"meal_id"	INTEGER NOT NULL,
-	FOREIGN KEY(meal_id) REFERENCES meals(id)
-);
-
-CREATE TABLE IF NOT EXISTS "meals" (
-	"id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-	"title"	TEXT NOT NULL,
-	"introduction"	TEXT,
-	"comensales"	INTEGER,
-	"duration"	TEXT,
-	"food_type"	TEXT
-);`
-
 func Load(url string) {
-	db, err := sqlx.Connect("sqlite3", "meals.db")
+	db, err := database.Setup()
 	if err != nil {
-		panic(err)
+		fmt.Println("Could not setup database", err)
 	}
 
 	defer db.Close()
@@ -49,32 +22,6 @@ func Load(url string) {
 	}
 
 	fmt.Printf("Saving %d meals into 'meals.db'\n", len(meals))
-
-	tx, err := db.Begin()
-
-	if err != nil {
-		panic(err)
-	}
-
-	// Drop tables if they exist, only aplicable for this specific `load` command
-	// Other commands may want to just append data rather than replacing the existing data
-	tx.Exec("DELETE FROM preparations")
-	tx.Exec("DROP TABLE IF EXISTS preparations")
-
-	tx.Exec("DELETE FROM ingredients")
-	tx.Exec("DROP TABLE IF EXISTS ingredients")
-
-	tx.Exec("DELETE FROM meals")
-	tx.Exec("DROP TABLE IF EXISTS meals")
-	// 
-
-	tx.Exec(schema)
-
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println("Could not setup database", err)
-		return
-	}
 
 	wg := new(sync.WaitGroup)
 
