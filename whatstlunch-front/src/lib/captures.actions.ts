@@ -7,11 +7,18 @@ export type Capture = {
 
 const [captures, setCaptures] = createSignal<Capture[]>([])
 
-const getIngredients = (_file: File) => new Promise<string[]>(resolve => {
-	setTimeout(() => {
-		resolve(['apple', 'banana'])
-	}, 2000)
-})
+async function getIngredients(file: File) {
+	const form = new FormData()
+	form.append('image', file)
+
+	const response = await fetch('http://192.168.0.8:3456/infer-ingredients', {
+		method: 'POST',
+		body: form
+	})
+
+	const data = await response.json()
+	return data as string[]
+}
 
 const createCapture = (file: File) => ({
 	filename: file.name,
