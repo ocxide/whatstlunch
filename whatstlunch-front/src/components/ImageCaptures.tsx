@@ -1,3 +1,4 @@
+import { insertCapture } from "@/lib/captures.actions"
 import { For, createSignal, onCleanup } from "solid-js"
 
 type FileRead = {
@@ -13,6 +14,8 @@ export default function ImageCaptures() {
 		const blob = URL.createObjectURL(file)
 		setCaptures(captures => [...captures, { file, blob }])
 		addInput.value = ''
+
+		insertCapture(file)
 	}
 
 	const updateOne = (file: File, i: number) => {
@@ -21,6 +24,8 @@ export default function ImageCaptures() {
 			captures[i] = { file, blob }
 			return captures.slice()
 		})
+
+		insertCapture(file)
 	}
 
 	const removeOne = (i: number) => {
