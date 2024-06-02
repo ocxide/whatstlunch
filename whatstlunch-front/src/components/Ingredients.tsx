@@ -46,6 +46,22 @@ export default function Ingredients() {
 		}, 0)
 	}
 
+	const handleDeletion = () => {
+		if (customs().length < 2 || getCurrentInput()?.value) return
+
+		const previous = previousPointer()
+
+		setCustom(customs => {
+			customs.splice(pointer().at, 1)
+			return customs.slice()
+		})
+
+		if (previous)
+			setTimeout(() => {
+				setFocus(previous)
+			}, 0)
+	}
+
 	const handleNavigation = (e: KeyboardEvent) => {
 		if (e.key === "Enter") {
 			createNew()
@@ -53,20 +69,7 @@ export default function Ingredients() {
 		}
 
 		if (e.key === 'Backspace') {
-			if (!getCurrentInput()?.value) {
-				const previous = previousPointer()
-
-				setCustom(customs => {
-					customs.splice(pointer().at, 1)
-					return customs.slice()
-				})
-
-				if (previous)
-					setTimeout(() => {
-						setFocus(previous)
-					}, 0)
-			}
-
+			handleDeletion()
 		}
 	}
 
