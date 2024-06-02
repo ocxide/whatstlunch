@@ -1,4 +1,4 @@
-import { For, createEffect, createSignal } from "solid-js"
+import { For, createSignal } from "solid-js"
 
 export type Pointer = {
 	key: string | null
@@ -31,17 +31,26 @@ export default function Ingredients() {
 		return { key, at: at - 1 }
 	}
 
+	const createNew = () => {
+		const last = custom().at(-1);
+		if (last && !last[0]()) {
+			setTimeout(() => setFocus({ key: null, at: custom().length - 1 }), 0)
+			return
+		}
+
+		const next = custom().length
+
+		setCustom(customs => [...customs, createSignal('')])
+
+		setTimeout(() => {
+			setFocus({ key: null, at: next })
+		}, 0)
+	}
+
 	const handleNavigation = (e: KeyboardEvent) => {
-		console.log(e.key)
-
 		if (e.key === "Enter") {
-			const next = custom().length
-
-			setCustom(customs => [...customs, createSignal('')])
-
-			setTimeout(() => {
-				setFocus({ key: null, at: next })
-			}, 0)
+			createNew()
+			return
 		}
 
 		if (e.key === 'Backspace') {
@@ -78,7 +87,7 @@ export default function Ingredients() {
 							class="border-2 border-blue-500"
 							id={createId(null, i())}
 							type="text" value={ingredient()}
-							onChange={e => onCustomChange(e.target.value, i())}
+							onInput={e => onCustomChange(e.target.value, i())}
 							onFocus={() => setPointer({ key: null, at: i() })}
 						/>
 					</li>}
