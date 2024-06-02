@@ -38,4 +38,14 @@ export function insertCapture(file: File) {
 	})
 }
 
+export function removeCapture(filename: string) {
+	setCaptures(captures => {
+		const i = captures.findIndex(c => c.filename === filename)
+		if (i === -1) return captures
+
+		captures.splice(i, 1)
+		return captures.slice()
+	})
+}
+
 export { captures }
