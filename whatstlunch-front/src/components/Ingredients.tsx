@@ -20,16 +20,6 @@ export default function Ingredients() {
 	const getInput = ({ key, at }: Pointer) => document.getElementById(createId(key, at)) as HTMLInputElement | null
 	const getCurrentInput = () => getInput(pointer())
 
-	const previousPointer = () => {
-		const { key, at } = pointer()
-		if (at === 0) {
-			// TODO
-			return null
-		}
-
-		return { key, at: at - 1 }
-	}
-
 	const createNew = () => {
 		const last = customs().at(-1);
 		if (last && !last[0]()) {
@@ -46,10 +36,12 @@ export default function Ingredients() {
 		}, 0)
 	}
 
-	const handleDeletion = () => {
-		if (customs().length < 2 || getCurrentInput()?.value) return
+	const handleCustomBackspace = () => {
+		if (pointer().key != null || customs().length < 2 || getCurrentInput()?.value) return
 
-		const previous = previousPointer()
+		let previous: Pointer | null = null
+		if (pointer().at > 0)
+			previous = { key: null, at: pointer().at - 1 }
 
 		setCustom(customs => {
 			customs.splice(pointer().at, 1)
@@ -69,7 +61,7 @@ export default function Ingredients() {
 		}
 
 		if (e.key === 'Backspace') {
-			handleDeletion()
+			handleCustomBackspace()
 		}
 	}
 
