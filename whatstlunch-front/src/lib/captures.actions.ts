@@ -1,6 +1,6 @@
 import { createSignal, type Signal } from "solid-js";
 
-type Capture = {
+export type Capture = {
 	filename: string;
 	ingredients: Signal<string[]>;
 }
@@ -21,7 +21,7 @@ const createCapture = (file: File) => ({
 export function insertCapture(file: File) {
 	setCaptures(captures => {
 		const i = captures.findIndex(c => c.filename === file.name)
-		if (i !== -1) {
+		if (i === -1) {
 			return [...captures, createCapture(file)]
 		}
 

@@ -1,3 +1,4 @@
+import { captures } from "@/lib/captures.actions"
 import { For, createSignal } from "solid-js"
 
 export type Pointer = {
@@ -6,11 +7,9 @@ export type Pointer = {
 }
 
 export default function Ingredients() {
-	let root: HTMLElement
-
 	const [pointer, setPointer] = createSignal<Pointer>({ key: null, at: 0 })
 
-	const [custom, setCustom] = createSignal([createSignal('')])
+	const [customs, setCustom] = createSignal([createSignal('')])
 	const [generated, setGenerated] = createSignal([] as { key: string, ingredient: string[] }[])
 
 	const setFocus = (pointer: Pointer) => {
@@ -18,7 +17,7 @@ export default function Ingredients() {
 		getInput(pointer)?.focus()
 	}
 
-	const getInput = ({ key, at }: Pointer) => root.querySelector(`#${createId(key, at)}`) as HTMLInputElement | null
+	const getInput = ({ key, at }: Pointer) => document.getElementById(createId(key, at)) as HTMLInputElement | null
 	const getCurrentInput = () => getInput(pointer())
 
 	const previousPointer = () => {
@@ -32,13 +31,13 @@ export default function Ingredients() {
 	}
 
 	const createNew = () => {
-		const last = custom().at(-1);
+		const last = customs().at(-1);
 		if (last && !last[0]()) {
-			setTimeout(() => setFocus({ key: null, at: custom().length - 1 }), 0)
+			setTimeout(() => setFocus({ key: null, at: customs().length - 1 }), 0)
 			return
 		}
 
-		const next = custom().length
+		const next = customs().length
 
 		setCustom(customs => [...customs, createSignal('')])
 
@@ -72,16 +71,57 @@ export default function Ingredients() {
 	}
 
 	const onCustomChange = (content: string, i: number) => {
-		const [_, setCustom] = custom()[i]
+		const [_, setCustom] = customs()[i]
 		setCustom(content)
 	}
 
-	return <ul ref={el => { root = el }} onKeyDown={handleNavigation}>
+	const onCapturedChange = (content: string, key: string, i: number) => {
+		const capture = captures().find(c => c.filename === key)
+		if (!capture) return
+		const [_, set] = capture.ingredients
+
+		set(ingredients => {
+			ingredients.splice(i, 1)
+			return ingredients.slice()
+		})
+
+		const last = customs().at(-1);
+		if (last && !last[0]()) {
+			const [_, setLast] = last
+			setLast(content)
+		}
+		else {
+			setCustom(customs => [...customs, createSignal(content)])
+		}
+
+		setTimeout(() => setFocus({ key: null, at: customs().length - 1 }), 0)
+	}
+
+	return <ul onKeyDown={handleNavigation}>
+		<For each={captures()}>
+			{(capture) => (<li>
+				<p class="font-bold">{capture.filename}</p>
+				<ul>
+					<For each={capture.ingredients[0]()}>
+						{(ingredient, i) => <li>
+							<input
+								class="border-2 border-blue-500"
+								id={createId(capture.filename, i())}
+								type="text" value={ingredient}
+								onInput={e => onCapturedChange(e.target.value, capture.filename, i())}
+								onFocus={() => setPointer({ key: capture.filename, at: i() })}
+							/>
+						</li>}
+					</For>
+				</ul>
+			</li>)}
+		</For>
+
 		<li>
 			<p>Custom</p>
 
 			<ul>
-				<For each={custom()}>
+				<For each={customs()}>
 					{([ingredient], i) => <li>
 						<input
 							class="border-2 border-blue-500"
