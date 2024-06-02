@@ -1,4 +1,5 @@
 import { captures } from "@/lib/captures.actions"
+import { customStore } from "@/lib/custom-ingredients.store"
 import { For, createSignal } from "solid-js"
 
 export type Pointer = {
@@ -8,9 +9,7 @@ export type Pointer = {
 
 export default function Ingredients() {
 	const [pointer, setPointer] = createSignal<Pointer>({ key: null, at: 0 })
-
-	const [customs, setCustom] = createSignal([createSignal('')])
-	const [generated, setGenerated] = createSignal([] as { key: string, ingredient: string[] }[])
+	const [customs, setCustom] = customStore
 
 	const setFocus = (pointer: Pointer) => {
 		setPointer(pointer)
@@ -92,7 +91,7 @@ export default function Ingredients() {
 		setTimeout(() => setFocus({ key: null, at: customs().length - 1 }), 0)
 	}
 
-	return <ul onKeyDown={handleNavigation}>
+	return <ul class="grid gap-2" onKeyDown={handleNavigation}>
 		<For each={captures()}>
 			{(capture) => (<li>
 				<p class="font-bold">{capture.filename}</p>

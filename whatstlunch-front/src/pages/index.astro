@@ -2,15 +2,18 @@
 import Layout from "../layouts/Layout.astro";
 import Ingredients from "@/components/Ingredients.tsx";
 import ImageCaptures from "@/components/ImageCaptures.tsx";
+import DishFetch from "@/components/DishFetch";
 ---
 
 <Layout>
-	<main class="container mx-auto grid sm:grid-cols-2">
-		<div class="">
+	<main class="container mx-auto">
+		<div class="grid sm:grid-cols-2">
 			<ImageCaptures client:load />
-		</div>
-		<div class="">
 			<Ingredients client:load />
 		</div>
+
+		<footer>
+			<DishFetch client:load />
+		</footer>
 	</main>
 </Layout>
