@@ -92,8 +92,13 @@ func InferIngredients(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	items := strings.Split(completion.Response, "-")
+	if len(items) > 0 && strings.TrimSpace(items[0]) == "" {
+		items = items[1:]
+	}
+
 	ingredients := make([]string, 0)
-	for _, ingredient := range strings.Split(completion.Response, "-") {
+	for _, ingredient := range items {
 		ingredient = strings.TrimSpace(ingredient)
 		ingredient = strings.ToLower(ingredient)
 
