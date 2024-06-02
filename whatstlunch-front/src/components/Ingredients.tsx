@@ -5,7 +5,7 @@ export default function Ingredients() {
 
 	const [pointer, setPointer] = createSignal({ key: null, at: 0 })
 
-	const [custom, setCustom] = createSignal([''])
+	const [custom, setCustom] = createSignal([createSignal('')])
 	const [generated, setGenerated] = createSignal([] as { key: string, ingredient: string[] }[])
 
 	const getCurrentInput = () => {
@@ -29,11 +29,11 @@ export default function Ingredients() {
 		if (e.key === "Enter") {
 			const next = custom().length
 
-			setCustom(customs => [...customs, ''])
+			setCustom(customs => [...customs, createSignal('')])
 
 			setTimeout(() => {
 				setPointer({ key: null, at: next })
-			}, 100)
+			}, 0)
 		}
 
 		if (e.key === 'Backspace') {
@@ -41,9 +41,14 @@ export default function Ingredients() {
 				const previous = previousPointer()
 
 				setCustom(customs => {
-
-					return customs
+					customs.splice(pointer().at, 1)
+					return customs.slice()
 				})
+
+				if (previous)
+					setTimeout(() => {
+						setPointer(previous)
+					}, 0)
 			}
 
 		}
@@ -54,10 +59,8 @@ export default function Ingredients() {
 	})
 
 	const onCustomChange = (content: string, i: number) => {
-		setCustom(customs => {
-			customs[i] = content
-			return customs
-		})
+		const [_, setCustom] = custom()[i]
+		setCustom(content)
 	}
 
 	return <ul ref={el => { root = el }} onKeyDown={handleNavigation}>
@@ -66,8 +69,8 @@ export default function Ingredients() {
 
 			<ul>
 				<For each={custom()}>
-					{(ingredient, i) => <li>
-						<input id={createId(null, i())} type="text" value={ingredient} onChange={e => onCustomChange(e.target.value, i())} />
+					{([ingredient], i) => <li>
+						<input class="border-2 border-blue-500" id={createId(null, i())} type="text" value={ingredient()} onChange={e => onCustomChange(e.target.value, i())} />
 					</li>}
 				</For>
 			</ul>
