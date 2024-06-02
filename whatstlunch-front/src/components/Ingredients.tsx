@@ -1,17 +1,25 @@
 import { For, createEffect, createSignal } from "solid-js"
 
+export type Pointer = {
+	key: string | null
+	at: number
+}
+
 export default function Ingredients() {
 	let root: HTMLElement
 
-	const [pointer, setPointer] = createSignal({ key: null, at: 0 })
+	const [pointer, setPointer] = createSignal<Pointer>({ key: null, at: 0 })
 
 	const [custom, setCustom] = createSignal([createSignal('')])
 	const [generated, setGenerated] = createSignal([] as { key: string, ingredient: string[] }[])
 
-	const getCurrentInput = () => {
-		const { key, at } = pointer()
-		return root.querySelector(`#${createId(key, at)}`) as HTMLInputElement | null;
+	const setFocus = (pointer: Pointer) => {
+		setPointer(pointer)
+		getInput(pointer)?.focus()
 	}
+
+	const getInput = ({ key, at }: Pointer) => root.querySelector(`#${createId(key, at)}`) as HTMLInputElement | null
+	const getCurrentInput = () => getInput(pointer())
 
 	const previousPointer = () => {
 		const { key, at } = pointer()
@@ -32,7 +40,7 @@ export default function Ingredients() {
 			setCustom(customs => [...customs, createSignal('')])
 
 			setTimeout(() => {
-				setPointer({ key: null, at: next })
+				setFocus({ key: null, at: next })
 			}, 0)
 		}
 
@@ -47,16 +55,12 @@ export default function Ingredients() {
 
 				if (previous)
 					setTimeout(() => {
-						setPointer(previous)
+						setFocus(previous)
 					}, 0)
 			}
 
 		}
 	}
-
-	createEffect(() => {
-		getCurrentInput()?.focus()
-	})
 
 	const onCustomChange = (content: string, i: number) => {
 		const [_, setCustom] = custom()[i]
@@ -70,7 +74,13 @@ export default function Ingredients() {
 			<ul>
 				<For each={custom()}>
 					{([ingredient], i) => <li>
-						<input class="border-2 border-blue-500" id={createId(null, i())} type="text" value={ingredient()} onChange={e => onCustomChange(e.target.value, i())} />
+						<input
+							class="border-2 border-blue-500"
+							id={createId(null, i())}
+							type="text" value={ingredient()}
+							onChange={e => onCustomChange(e.target.value, i())}
+							onFocus={() => setPointer({ key: null, at: i() })}
+						/>
 					</li>}
 				</For>
 			</ul>
