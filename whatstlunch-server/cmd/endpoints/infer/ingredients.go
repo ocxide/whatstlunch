@@ -69,14 +69,14 @@ func InferIngredients(w http.ResponseWriter, req *http.Request) {
 	base64Img := base64.StdEncoding.EncodeToString(rezizedImgBytes.Bytes())
 	content := strings.NewReader(`{
 			"model": "llava:7b",
-			"prompt": "Crea una lista de los ingredientes (frutas, verduras, especias, carnes, etc) de lo que puedas ver en la imagen. Incluye solo nombres, todo en español.\n- ",
+			"prompt": "Crea una lista de los ingredientes (frutas, verduras, especias, carnes, etc) de lo que puedas ver en la imagen. solo nombres, simple, todo en español. Use dashes to list them.",
 			"stream": false,
 			"images": ["` + base64Img + `"]
 	}`)
 
 	response, err := http.Post("http://127.0.0.1:11434/api/generate", "application/json", content)
 	if err != nil {
-		fmt.Fprint(w, "Error infering ingredients - error contection LLM", err)
+		fmt.Fprint(w, "Error infering ingredients - error contection LLM\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -93,7 +93,10 @@ func InferIngredients(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ingredients := make([]string, 0)
-	for _, ingredient := range strings.Split(completion.Response, "\n- ") {
+	for _, ingredient := range strings.Split(completion.Response, "-") {
+		ingredient = strings.TrimSpace(ingredient)
+		ingredient = strings.ToLower(ingredient)
+
 		ingredients = append(ingredients, ingredient)
 	}
 
@@ -103,6 +106,6 @@ func InferIngredients(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 }
