@@ -1,11 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Ingredients from "@/components/Ingredients.tsx";
+import ImageCaptures from "@/components/ImageCaptures.tsx";
 ---
 
 <Layout>
 	<main class="container mx-auto grid sm:grid-cols-2">
-		<div class=""></div>
+		<div class="">
+			<ImageCaptures client:load />
+		</div>
 		<div class="">
 			<Ingredients client:load />
 		</div>
