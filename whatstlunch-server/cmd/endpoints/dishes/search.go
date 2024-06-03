@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -87,14 +86,8 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		args = append(args, "%"+ingredient+"%")
 
 		if i < len(ingredients)-1 {
-			filter += "OR ingredients LIKE "
+			filter += " OR ingredients LIKE "
 		}
-	}
-
-	limit := ""
-	if isCount {
-		limit = "LIMIT ?"
-		args = append(args, require)
 	}
 
 	dishes := []DishSelect{}
@@ -113,7 +106,7 @@ func Search(res http.ResponseWriter, req *http.Request) {
 				SELECT GROUP_CONCAT(pdescription, ';') FROM
 				(SELECT description as pdescription FROM preparations p WHERE p.meal_id = m.id)
 			) as preparation
-		FROM meals m `+filter+limit,
+		FROM meals m `+filter,
 		args...,
 	)
 
@@ -135,19 +128,14 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	if !isCount {
-		// The users requires a percentage of the ingredients to match
-		mustMatch := int(float64(len(ingredients)) * require)
-		matched := make([]DishFound, 0)
-
-		for _, dish := range parsedDishes {
-			if matches(dish.Ingredients, ingredients, mustMatch) {
-				matched = append(matched, dish)
-			}
-		}
-
-		parsedDishes = matched
+	minIngredients := 0
+	if isCount {
+		minIngredients = int(require)
+	} else {
+		minIngredients = int(float64(len(ingredients)) * require)
 	}
+
+	parsedDishes = filterDishesByRequire(parsedDishes, ingredients, minIngredients)
 
 	res.WriteHeader(http.StatusOK)
 	res.Header().Add("Content-Type", "application/json")
@@ -155,18 +143,41 @@ func Search(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode(parsedDishes)
 }
 
+func filterDishesByRequire(dishes []DishFound, searchIngredients []string, require int) []DishFound {
+	fmt.Println("search", searchIngredients)
+
+	filtered := make([]DishFound, 0, len(dishes))
+	for _, dish := range dishes {
+
+		if !matches(dish.Ingredients, searchIngredients, require) {
+			continue
+		}
+
+		filtered = append(filtered, dish)
+	}
+
+	return filtered
+}
+
 func matches(ingredients []string, searchIngredients []string, mustMatch int) bool {
 	matched := 0
 
-	for _, searchIngredient := range searchIngredients {
-		if slices.Contains(ingredients, searchIngredient) {
-			matched++
-		}
+	for _, search := range searchIngredients {
+		anyMatch(&matched, ingredients, search)
 
 		if matched >= mustMatch {
 			return true
 		}
 	}
 
-	return matched >= mustMatch
+	return false
+}
+
+func anyMatch(matched *int, ingredients []string, search string) {
+	for _, ingredient := range ingredients {
+		if strings.Contains(ingredient, search) {
+			*matched += 1
+			return
+		}
+	}
 }
