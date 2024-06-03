@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "name": "My Launch",
+          "type": "go",
+          "request": "launch",
+          "mode": "debug",
+          "cwd": "${workspaceFolder}",
+          "program": "${workspaceFolder}/cmd/main.go",
+          "env": {},
+          "args": ["launch", "--host", "192.168.0.8:3456"],
+          "showLog": true
+      }
+  ]
+}
