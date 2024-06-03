@@ -123,11 +123,6 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if len(dishes) == 0 {
-		res.WriteHeader(http.StatusNotFound)
-		return
-	}
-
 	parsedDishes := make([]DishFound, len(dishes))
 	for i, dish := range dishes {
 		parsedDishes[i] = DishFound{
