@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
+
+	"github.com/ocxide/whatstlunch/cmd/config"
 )
 
 type CompletionResponse struct {
@@ -30,7 +32,11 @@ func resizeImage(file io.ReadCloser) (*image.NRGBA, error) {
 	return dist, nil
 }
 
-func InferIngredients(w http.ResponseWriter, req *http.Request) {
+type InferIngredients struct {
+	Config config.AiConfig
+}
+
+func (handler *InferIngredients) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	file, header, err := req.FormFile("image")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -68,13 +74,13 @@ func InferIngredients(w http.ResponseWriter, req *http.Request) {
 
 	base64Img := base64.StdEncoding.EncodeToString(rezizedImgBytes.Bytes())
 	content := strings.NewReader(`{
-			"model": "llava:7b",
+			"model": "` + handler.Config.Model + `",
 			"prompt": "Crea una lista de los ingredientes (frutas, verduras, especias, carnes, etc) de lo que puedas ver en la imagen. solo nombres, simple, todo en español. Use dashes to list them.",
 			"stream": false,
 			"images": ["` + base64Img + `"]
 	}`)
 
-	response, err := http.Post("http://127.0.0.1:11434/api/generate", "application/json", content)
+	response, err := http.Post(handler.Config.ApiUrl+"/generate", "application/json", content)
 	if err != nil {
 		fmt.Fprint(w, "Error infering ingredients - error contection LLM\n", err)
 		w.WriteHeader(http.StatusInternalServerError)

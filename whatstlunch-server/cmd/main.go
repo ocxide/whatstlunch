@@ -27,6 +27,7 @@ func readConfig(configPath string) (config.Config, error) {
 		PublicDir: "public",
 		Host:      "127.0.0.1:3456",
 		Ai: config.AiConfig{
+			ApiUrl: "http://127.0.0.1:11434/api",
 			Model: "llava:7b",
 		},
 	}
@@ -58,25 +59,31 @@ func readConfig(configPath string) (config.Config, error) {
 		cfg.Ai.Model = defaultConfig.Ai.Model
 	}
 
+	if cfg.Ai.ApiUrl == "" {
+		cfg.Ai.ApiUrl = defaultConfig.Ai.ApiUrl
+	}
+
 	return cfg, nil
 }
 
-func listen(host string, publicDir string) {
+func listen(config config.Config) {
 	mux := http.NewServeMux()
-	mux.Handle("GET /", http.FileServer(http.Dir(publicDir)))
+	mux.Handle("GET /", http.FileServer(http.Dir(config.PublicDir)))
 
 	mux.HandleFunc("GET /dishes", dishes.Search)
-	mux.HandleFunc("POST /infer-ingredients", infer.InferIngredients)
+	mux.Handle("POST /infer-ingredients", &infer.InferIngredients {
+		Config: config.Ai,
+	})
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		mux.ServeHTTP(w, req)
 	})
 
-	fmt.Printf("Listening on: %s\n", host)
+	fmt.Printf("Listening on: %s\n", config.Host)
 
 	server := http.Server{
-		Addr:    host,
+		Addr:    config.Host,
 		Handler: handler,
 	}
 
@@ -113,7 +120,7 @@ func main() {
 				config.PublicDir = publicDir
 			}
 
-			listen(config.Host, config.PublicDir)
+			listen(config)
 		},
 	}
 

@@ -7,5 +7,6 @@ type Config struct {
 }
 
 type AiConfig struct {
-	Model string `toml:"model"`
+	ApiUrl string `toml:"api_url"`
+	Model  string `toml:"model"`
 }

@@ -1,4 +1,4 @@
-publicDir = "public"
+public_dir = "public"
 host = "127.0.0.1:3456"
 
 [ai]
