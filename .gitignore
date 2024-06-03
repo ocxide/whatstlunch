@@ -23,7 +23,11 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-public/
 
 # Default database
 meals.db
+
+# Default build target
+/public/
+# Default build binary name
+/whatstlunch
