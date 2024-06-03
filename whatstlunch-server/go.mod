@@ -12,6 +12,8 @@ require github.com/mattn/go-sqlite3 v1.14.22
 
 require github.com/disintegration/imaging v1.6.2
 
+require github.com/BurntSushi/toml v1.4.0
+
 require (
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
