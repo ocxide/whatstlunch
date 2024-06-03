@@ -10,9 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func listen(host string) {
+func listen(host string, publicDir string) {
 	mux := http.NewServeMux()
-	mux.Handle("GET /", http.FileServer(http.Dir("public")))
+	mux.Handle("GET /", http.FileServer(http.Dir(publicDir)))
+
 	mux.HandleFunc("GET /dishes", dishes.Search)
 	mux.HandleFunc("POST /infer-ingredients", infer.InferIngredients)
 
@@ -49,11 +50,17 @@ func main() {
 				host = "127.0.0.1:3456"
 			}
 
-			listen(host)
+			publicDir := cmd.Flags().Lookup("public").Value.String()
+			if publicDir == "" {
+				publicDir = "public"
+			}
+
+			listen(host, publicDir)
 		},
 	}
 
 	launchCmd.PersistentFlags().String("host", "", "Host to serve on")
+	launchCmd.PersistentFlags().String("public", "", "Public directory")
 	rootCmd.AddCommand(launchCmd)
 
 	loadCmd := &cobra.Command{
