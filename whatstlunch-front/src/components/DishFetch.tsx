@@ -34,7 +34,6 @@ export default function DishFetch() {
 		const requireStr = search.get('require') ?? '0'
 		const requireInt = parseInt(requireStr, 10)
 
-		console.log({ requireStr, requireInt })
 		if (isNaN(requireInt)) return
 
 		if (requireInt === 0 && requireStr.includes('.')) {
@@ -85,14 +84,19 @@ export default function DishFetch() {
 	return (
 		<div class="">
 			<div class="p-4 grid justify-center">
-				<div class="">
-					<Show when={isPercentage()} fallback={<input type="number" value={limit()} onInput={e => setLimit(parseInt(e.currentTarget.value))} />}>
-						<PercentageControl percentage={percentageSignal} />
-					</Show>
+				<div class="h-10 flex-col flex justify-center items-center">
+					<div class="grid grid-cols-[auto,14rem,auto,auto] items-center gap-x-2">
+						<span>Require at least:&nbsp;</span>
 
-					<input type="checkbox" class="ml-2" checked={isPercentage()} onInput={e => setIsPercentage(e.currentTarget.checked)} />
-					<span>Is Percentage</span>
+						<Show when={isPercentage()} fallback={<input type="number" value={limit()} onInput={e => setLimit(parseInt(e.currentTarget.value))} />}>
+							<PercentageControl percentage={percentageSignal} />
+						</Show>
+
+						<input id="isPercentage" type="checkbox" checked={isPercentage()} onInput={e => setIsPercentage(e.currentTarget.checked)} />
+						<label for="isPercentage">Is Percentage</label>
+					</div>
 				</div>
+
 				<button class="bg-sky-500 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded" onClick={onClick}>Search dishes</button>
 			</div>
 
@@ -111,9 +115,10 @@ function PercentageControl({ percentage: signal }: { percentage: Signal<number> 
 	const [percentage, setPercentage] = signal
 	const percentageDisplay = () => Math.round(percentage() * 100)
 
-	return (<>
+	return (<div class="flex gap-x-2 items-center">
 		<input
 			type="range"
+			class="min-w-0"
 			min="0"
 			max="1"
 			step="0.05"
@@ -121,7 +126,7 @@ function PercentageControl({ percentage: signal }: { percentage: Signal<number> 
 			onInput={e => setPercentage(parseFloat(e.currentTarget.value))}
 		/>
 		<span>{percentageDisplay()}%</span>
-	</>)
+	</div>)
 }
 
 function DishEntry({

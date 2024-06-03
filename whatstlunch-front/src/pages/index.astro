@@ -7,13 +7,13 @@ import DishFetch from "@/components/DishFetch";
 
 <Layout>
 	<main class="container mx-auto">
-		<div class="grid sm:grid-cols-2">
+		<div class="grid sm:grid-cols-2 gap-8">
 			<ImageCaptures client:load />
 			<Ingredients client:load />
 		</div>
 
-		<footer>
+		<section>
 			<DishFetch client:load />
-		</footer>
+		</section>
 	</main>
 </Layout>
