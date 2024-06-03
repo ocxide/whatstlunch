@@ -42,7 +42,7 @@ func parseRequirement(requireStr string) (float64, bool, error) {
 	if isCount {
 		require = float64(requireI)
 		return require, true, nil
-	} 
+	}
 
 	require, err = strconv.ParseFloat(requireStr, 64)
 
@@ -80,7 +80,7 @@ func Search(res http.ResponseWriter, req *http.Request) {
 	}
 
 	args := make([]any, 0, len(ingredients))
-	filter := "HAVING ingredients LIKE "
+	filter := "WHERE ingredients LIKE "
 
 	for i, ingredient := range ingredients {
 		filter = filter + "?"
@@ -105,12 +105,15 @@ func Search(res http.ResponseWriter, req *http.Request) {
 			m.introduction,
 			m.duration,
 			m.food_type,
-			GROUP_CONCAT(i.description) as ingredients,
-			GROUP_CONCAT(p.description, ';') as preparation
-		FROM meals m
-		LEFT JOIN ingredients i ON m.id = i.meal_id
-		LEFT JOIN preparations p ON m.id = p.meal_id
-		GROUP BY m.id `+filter+limit,
+			(
+				SELECT group_concat(idescription, ';') FROM
+				(SELECT description as idescription FROM ingredients i WHERE i.meal_id = m.id)
+			) as ingredients,
+			(
+				SELECT GROUP_CONCAT(pdescription, ';') FROM
+				(SELECT description as pdescription FROM preparations p WHERE p.meal_id = m.id)
+			) as preparation
+		FROM meals m `+filter+limit,
 		args...,
 	)
 
@@ -132,11 +135,11 @@ func Search(res http.ResponseWriter, req *http.Request) {
 			Introduction: dish.Introduction,
 			Duration:     dish.Duration,
 			FoodType:     dish.FoodType,
-			Ingredients:  strings.Split(dish.Ingredients, ","),
+			Ingredients:  strings.Split(dish.Ingredients, ";"),
 			Preparation:  strings.Split(dish.Preparation, ";"),
 		}
 	}
-	
+
 	if !isCount {
 		// The users requires a percentage of the ingredients to match
 		mustMatch := int(float64(len(ingredients)) * require)
@@ -150,7 +153,6 @@ func Search(res http.ResponseWriter, req *http.Request) {
 
 		parsedDishes = matched
 	}
-
 
 	res.WriteHeader(http.StatusOK)
 	res.Header().Add("Content-Type", "application/json")
