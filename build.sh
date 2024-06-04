@@ -1,11 +1,13 @@
 #!/bin/bash
 
+rm -rf ./dist/
+mkdir -p ./dist
+
 cd ./whatstlunch-server
-go build -o ../whatstlunch ./cmd/main.go
+go build -o ../dist/whatstlunch ./cmd/main.go
 
 cd ../whatstlunch-front
 bun install
 bunx astro build
 
-rm -rf ../public
-mv ./dist ../public
+mv ./dist ../dist/public/
