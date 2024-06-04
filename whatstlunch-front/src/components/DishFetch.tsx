@@ -27,9 +27,11 @@ export default function DishFetch() {
 	onMount(() => {
 		const search = new URLSearchParams(window.location.search)
 		const ingredients = search.getAll('ingredient')
-		const [_, set] = customStore
 
-		set(ingredients.map(i => createSignal(i)))
+		if (ingredients.length > 0) {
+			const [_, set] = customStore
+			set(ingredients.map(i => createSignal(i)))
+		}
 
 		const requireStr = search.get('require') ?? '0'
 		const requireInt = parseInt(requireStr, 10)
@@ -84,8 +86,8 @@ export default function DishFetch() {
 	return (
 		<div class="">
 			<div class="p-4 grid justify-center">
-				<div class="h-10 flex-col flex justify-center items-center">
-					<div class="grid grid-cols-[auto,14rem,auto,auto] items-center gap-x-2">
+				<div class="min-h-10 flex-col flex justify-center items-center">
+					<div class="grid sm:grid-cols-[auto,14rem,auto,auto] items-center gap-2">
 						<span>Require at least:&nbsp;</span>
 
 						<Show when={isPercentage()} fallback={<input type="number" value={limit()} onInput={e => setLimit(parseInt(e.currentTarget.value))} />}>
