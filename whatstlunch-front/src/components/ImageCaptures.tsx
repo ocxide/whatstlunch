@@ -20,12 +20,15 @@ export default function ImageCaptures() {
 
 	const updateOne = (file: File, i: number) => {
 		const blob = URL.createObjectURL(file)
+
+		const previousFilename = captures()[i].file.name
+
 		setCaptures(captures => {
 			captures[i] = { file, blob }
 			return captures.slice()
 		})
 
-		insertCapture(file)
+		insertCapture(file, previousFilename)
 	}
 
 	const removeOne = (i: number) => {

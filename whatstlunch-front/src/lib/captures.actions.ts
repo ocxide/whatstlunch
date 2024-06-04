@@ -33,9 +33,10 @@ const createCapture = (file: File): Capture => ({
 	status: createSignal<Status>(Status.Loading),
 })
 
-export function insertCapture(file: File) {
+export function insertCapture(file: File, previous?: string) {
 	setCaptures(captures => {
-		const i = captures.findIndex(c => c.filename === file.name)
+		const filename = previous ?? file.name
+		const i = captures.findIndex(c => c.filename === filename)
 		if (i === -1) {
 			return [...captures, createCapture(file)]
 		}
