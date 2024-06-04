@@ -1,6 +1,8 @@
 #!/bin/bash
 
-rm -rf ./dist/
+rm ./dist/whatstlunch
+rm -rf ./dist/public
+
 mkdir -p ./dist
 
 cd ./whatstlunch-server
