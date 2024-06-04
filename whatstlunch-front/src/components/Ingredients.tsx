@@ -91,7 +91,7 @@ export default function Ingredients() {
 		setTimeout(() => setFocus({ key: null, at: customs().length - 1 }), 0)
 	}
 
-	return <ul class="grid gap-2" onKeyDown={handleNavigation}>
+	return <ul class="flex flex-col gap-2" onKeyDown={handleNavigation}>
 		<For each={captures()}>
 			{(capture) => (<li>
 				<p class="font-bold">{capture.filename}</p>
