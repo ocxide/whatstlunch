@@ -64,6 +64,10 @@ func Search(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	for i, ingredient := range ingredients {
+		ingredients[i] = strings.ToLower(strings.TrimSpace(ingredient))
+	}
+
 	requireStr := req.URL.Query().Get("require")
 	require, isCount, err := parseRequirement(requireStr)
 
@@ -144,8 +148,6 @@ func Search(res http.ResponseWriter, req *http.Request) {
 }
 
 func filterDishesByRequire(dishes []DishFound, searchIngredients []string, require int) []DishFound {
-	fmt.Println("search", searchIngredients)
-
 	filtered := make([]DishFound, 0, len(dishes))
 	for _, dish := range dishes {
 
