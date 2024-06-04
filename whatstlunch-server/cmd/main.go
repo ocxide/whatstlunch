@@ -25,7 +25,7 @@ func readConfig(configPath string) (config.Config, error) {
 
 	defaultConfig := config.Config{
 		PublicDir: "public",
-		Host:      "127.0.0.1:3456",
+		Host:      "0.0.0.0:3456",
 		Ai: config.AiConfig{
 			ApiUrl: "http://127.0.0.1:11434/api",
 			Model: "llava:7b",

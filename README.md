@@ -27,7 +27,7 @@ If you have the necessary tools installed (bun and Go), you can build the entire
 chmod +x ./build.sh && ./build.sh
 ```
 
-This command will generate a `whatstlunch` binary for the server sub-project and a public directory containing the frontend build.
+This command will generate, inside the ./dist directory a `whatstlunch` binary and a public directory with the static files.
 
 ### Dependencies
 
@@ -56,20 +56,21 @@ Then, launch the service to http with:
 whatstlunch launch
 ```
 
-By default this will list on host 127.0.0.1 and port 3456. Visit http://127.0.0.1:3456/ to see the client.
+By default this will listen on host 0.0.0.0 and port 3456. Visit http://0.0.0.0:3456/ to see the client.
+Because it is listening on 0.0.0.0 you can access it from phones, etc; so you can upload camera photos instead of loading images from the filesystem.
 
 ### AI ingredients Recognition
 
 This service can recognize ingredients from images taken with your phone or a selected image. For this to work, you will need to specify an
 "chatgpt-like" API to interanct.
 
-The recommended AI service is  `llava:7b` model of [ollama](https://www.ollama.com/).
+The recommended AI service is `llava:7b` model of [ollama](https://www.ollama.com/).
 Specifing an API_KEY is not currently supported yet, so, this will probably not work with chatgpt.
 
-Create a config file in the executable directory:
+Create a config file in the executable directory (./dist/ by default):
 
 ```toml
-// config.toml
+# config.toml
 
 [ai]
 model="llava:7b"

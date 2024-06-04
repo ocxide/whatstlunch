@@ -1,5 +1,5 @@
 public_dir = "public"
-host = "127.0.0.1:3456"
+host = "0.0.0.0:3456"
 
 [ai]
 model="llava:7b"
