@@ -55,9 +55,9 @@ func (handler *InferIngredients) ServeHTTP(w http.ResponseWriter, req *http.Requ
 	}
 
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Not supported image format, ", header.Header.Get("Content-Type"), "\n")
 		fmt.Fprint(w, "Supported image formats: jpeg, png\n")
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -66,9 +66,9 @@ func (handler *InferIngredients) ServeHTTP(w http.ResponseWriter, req *http.Requ
 
 	err = imaging.Encode(rezizedImgBytes, resizedImg, format)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, "Error encoding image")
 		fmt.Printf("Error encoding image\n")
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -82,8 +82,8 @@ func (handler *InferIngredients) ServeHTTP(w http.ResponseWriter, req *http.Requ
 
 	response, err := http.Post(handler.Config.ApiUrl+"/generate", "application/json", content)
 	if err != nil {
-		fmt.Fprint(w, "Error infering ingredients - error contection LLM\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Error infering ingredients - error contection LLM\n", err)
 		return
 	}
 
@@ -94,6 +94,7 @@ func (handler *InferIngredients) ServeHTTP(w http.ResponseWriter, req *http.Requ
 
 	err = decoder.Decode(&completion)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, "Error decoding response")
 		return
 	}
@@ -113,6 +114,7 @@ func (handler *InferIngredients) ServeHTTP(w http.ResponseWriter, req *http.Requ
 
 	err = json.NewEncoder(w).Encode(ingredients)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, "Error encoding response")
 		return
 	}
