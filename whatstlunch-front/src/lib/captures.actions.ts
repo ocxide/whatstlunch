@@ -1,8 +1,15 @@
 import { createSignal, type Signal } from "solid-js";
 
+export const enum Status {
+	Loading,
+	Error,
+	Ok
+}
+
 export type Capture = {
 	filename: string;
 	ingredients: Signal<string[]>;
+	status: Signal<Status>;
 }
 
 const [captures, setCaptures] = createSignal<Capture[]>([])
@@ -20,9 +27,10 @@ async function getIngredients(file: File) {
 	return data as string[]
 }
 
-const createCapture = (file: File) => ({
+const createCapture = (file: File): Capture => ({
 	filename: file.name,
-	ingredients: createSignal<string[]>([])
+	ingredients: createSignal<string[]>([]),
+	status: createSignal<Status>(Status.Loading),
 })
 
 export function insertCapture(file: File) {
@@ -37,11 +45,26 @@ export function insertCapture(file: File) {
 	})
 
 	getIngredients(file).then(ingredients => {
-		const signal = captures().find(c => c.filename === file.name)?.ingredients;
-		if (!signal) return
+		const capture = captures().find(c => c.filename === file.name);
+		if (!capture) return
 
-		const [_, set] = signal
-		set(ingredients)
+		const { status, ingredients: ingredientsSignal } = capture
+
+		{
+			const [_, setStatus] = status
+			setStatus(Status.Ok)
+		}
+		{
+			const [_, setIngredients] = ingredientsSignal
+			setIngredients(ingredients)
+		}
+
+	}).catch(() => {
+		const status = captures().find(c => c.filename === file.name)?.status;
+		if (!status) return
+
+		const [_, set] = status
+		set(Status.Error)
 	})
 }
 

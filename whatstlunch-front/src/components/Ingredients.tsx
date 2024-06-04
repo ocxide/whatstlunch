@@ -1,6 +1,6 @@
-import { captures } from "@/lib/captures.actions"
+import { Status, captures } from "@/lib/captures.actions"
 import { customStore } from "@/lib/custom-ingredients.store"
-import { For, createSignal } from "solid-js"
+import { For, Show, createSignal } from "solid-js"
 
 export type Pointer = {
 	key: string | null
@@ -95,6 +95,15 @@ export default function Ingredients() {
 		<For each={captures()}>
 			{(capture) => (<li>
 				<p class="font-bold">{capture.filename}</p>
+
+				<Show when={capture.status[0]() === Status.Error}>
+					<p class="text-red-500">Error</p>
+				</Show>
+
+				<Show when={capture.status[0]() === Status.Loading}>
+					<p class="text-gray-300 font-light">Loading...</p>
+				</Show>
+
 				<ul>
 					<For each={capture.ingredients[0]()}>
 						{(ingredient, i) => <li>
